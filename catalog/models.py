@@ -2,8 +2,10 @@ from django.db import models
 import uuid  # Required for unique book instances
 from datetime import date
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 # Create your models here.
+
 
 class Author(models.Model):
     """Model representing an author."""
@@ -15,6 +17,10 @@ class Author(models.Model):
     class Meta:
         ordering = ['last_name', 'first_name']
 
+    def get_absolute_url(self):
+        """Returns the url to access a particular author instance."""
+        return reverse('author-detail', args=[str(self.id)])
+
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.last_name}, {self.first_name}'
@@ -25,7 +31,7 @@ class Genre(models.Model):
     name = models.CharField(
         max_length=200,
         help_text="Enter a book genre (e.g. Science Fiction, French Poetry etc.)"
-        )
+    )
 
     def __str__(self):
         """String for representing the Model object (in Admin site etc.)"""
@@ -46,22 +52,29 @@ class Book(models.Model):
 
     title = models.CharField(max_length=200)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
-    summary = models.TextField(max_length=1000, help_text="Enter a brief description of the book")
-    
+    summary = models.TextField(
+        max_length=1000, help_text="Enter a brief description of the book")
+
     isbn = models.CharField('ISBN', max_length=13,
                             unique=True,
                             help_text='13 Character <a href="https://www.isbn-international.org/content/what-isbn'
                                       '">ISBN number</a>')
-    genre = models.ManyToManyField(Genre, help_text="Select a genre for this book")
+    genre = models.ManyToManyField(
+        Genre, help_text="Select a genre for this book")
     # ManyToManyField used because a genre can contain many books and a Book can cover many genres.
     # Genre class has already been defined so we can specify the object above.
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
-    
+    language = models.ForeignKey(
+        Language, on_delete=models.SET_NULL, null=True)
+
     class Meta:
         ordering = ['title', 'author']
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        """Returns the url to access a particular book instance."""
+        return reverse('book-detail', args=[str(self.id)])
 
 
 class BookInstance(models.Model):
@@ -71,7 +84,8 @@ class BookInstance(models.Model):
     book = models.ForeignKey('Book', on_delete=models.SET_NULL, null=True)
     imprint = models.CharField(max_length=200)
     due_back = models.DateField(null=True, blank=True)
-    borrower = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    borrower = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True)
 
     LOAN_STATUS = (
         ('d', 'Maintenance'),
